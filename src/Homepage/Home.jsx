@@ -152,7 +152,7 @@ const HomePage = () => {
             title="Trending Now"
             viewAllLink="/view-all/trending"
           >
-            <div className="grid grid-cols-3 gap-3 sm:gap-6">
+            <div className="grid grid-cols-3 gap-2 sm:gap-6">
               {trending.map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
               ))}
@@ -213,7 +213,7 @@ const HomePage = () => {
                 View all
               </Link>
             </div>
-            <div className="md:grid grid-cols-2 xl:flex flex-col gap-2">
+            <div className="md:grid grid-cols-2 xl:flex flex-col gap-3">
               {topRated.map((movie, index) => (
                 <div
                   key={movie.id}
