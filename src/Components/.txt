@@ -1,0 +1,6 @@
+now the home page in which i there is mutitple thing like,
+a cool mordern hero section
+multiple rows like top rating, trending, popular 
+ a catogry section like action, horror, comedy,  mystery, etc
+and when user click on any poster then it must show all the details like other.
+keep the only 4 movie on home page. but when  
