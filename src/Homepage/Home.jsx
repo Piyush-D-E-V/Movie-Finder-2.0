@@ -226,7 +226,7 @@ const HomePage = () => {
                   <img
                     src={`https://image.tmdb.org/t/p/w200${movie.poster_path}`}
                     alt={movie.title}
-                    className="w-12 h-16 rounded object-cover shadow-md"
+                    className="w-16 h-20 rounded object-cover shadow-md"
                   />
                   <div className="flex-1">
                     <h3 className="font-bold text-sm text-white group-hover:text-purple-400 transition-colors line-clamp-1">
@@ -272,7 +272,7 @@ const HomePage = () => {
                         : "https://via.placeholder.com/200x300?text=No+Poster"
                     }
                     alt={movie.title}
-                    className="w-12 h-16 rounded object-cover shadow-md"
+                    className="w-16 h-20 rounded object-cover shadow-md"
                   />
                   <div className="flex-1">
                     <h3 className="font-bold text-sm text-white group-hover:text-yellow-500 transition-colors line-clamp-1">
