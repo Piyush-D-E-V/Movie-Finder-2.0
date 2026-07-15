@@ -21,12 +21,11 @@ const Details = () => {
       
       try {
         const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-        const PROXY_URL = "https://corsproxy.io/?";
-        const BASE_URL = "https://api.themoviedb.org/3";
+        const BASE_URL = "/api/tmdb";
         
-        // Fetch details + trailer + cast + OTT providers in one shot
+        // 🚨 FIX: Corrected URL formation to avoid double "/api/tmdb"
         const targetUrl = `${BASE_URL}/${mediaType}/${id}?api_key=${apiKey}&append_to_response=videos,credits,watch/providers`;
-        const response = await fetch(PROXY_URL + encodeURIComponent(targetUrl));
+        const response = await fetch(targetUrl);
         
         if (!response.ok) throw new Error("Failed to fetch data");
         
@@ -59,11 +58,11 @@ const Details = () => {
   const releaseYear = data.release_date?.slice(0, 4) || data.first_air_date?.slice(0, 4) || "N/A";
   const isMovieAdded = isAdded(data.id);
 
-  // 🚨 UPGRADED OTT PROVIDERS LOGIC
+  // UPGRADED OTT PROVIDERS LOGIC
   const watchData = data["watch/providers"]?.results;
   const regionData = watchData?.IN || watchData?.US; 
 
-  // Combine ALL types of streaming (subscription, free, ads, rent, buy)
+  // Combine ALL types of streaming
   const allPlatforms = [
     ...(regionData?.flatrate || []),
     ...(regionData?.free || []),
@@ -72,7 +71,7 @@ const Details = () => {
     ...(regionData?.buy || [])
   ];
 
-  // Remove duplicates (so we don't show the Netflix logo twice if it's both rent and flatrate)
+  // Remove duplicates
   const streamingPlatforms = Array.from(new Map(allPlatforms.map(p => [p.provider_id, p])).values());
 
   return (
@@ -91,7 +90,7 @@ const Details = () => {
           alt="Backdrop" 
           className="w-full h-full object-cover opacity-30" 
         />
-        <div className="absolute inset-0 bg-linear-to-t from-[#0b0b13] via-[#0b0b13]/60 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b13] via-[#0b0b13]/60 to-transparent"></div>
       </div>
 
       {/* --- MAIN CONTENT --- */}
@@ -106,13 +105,12 @@ const Details = () => {
               className="w-full rounded-2xl shadow-[0_0_30px_rgba(0,0,0,0.6)] border border-slate-700"
             />
             
-            {/* 🚨 NEW OTT PLATFORM SECTION WITH SMART LINKS */}
+            {/* NEW OTT PLATFORM SECTION WITH SMART LINKS */}
             {streamingPlatforms.length > 0 && (
               <div className="bg-[#12121a] border border-slate-800 rounded-2xl p-4 shadow-lg">
                 <p className="text-slate-400 text-sm font-bold mb-3 uppercase tracking-wider">Available to Watch</p>
                 <div className="flex flex-wrap gap-3">
                   {streamingPlatforms.map(platform => {
-                    // SMART LINK GEN: TMDB link is blocked, so we auto-generate a Google Search deep-link
                     const smartSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(`Watch ${data.title || data.name} on ${platform.provider_name}`)}`;
 
                     return (

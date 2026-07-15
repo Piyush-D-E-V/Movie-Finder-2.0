@@ -4,6 +4,18 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(),
-],
+  plugins: [
+    react(), 
+    tailwindcss()
+  ],
+  server: {
+    proxy: {
+      // Local development mein jab bhi /api/tmdb call hoga, yeh directly TMDB server ko hit karega
+      '/api/tmdb': {
+        target: 'https://api.themoviedb.org/3',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/tmdb/, '')
+      }
+    }
+  }
 })

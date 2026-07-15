@@ -20,7 +20,7 @@ const ViewAll = () => {
     oscars: { endpoint: "/list/28", title: "🏆 Oscar Winners" }, 
   };
 
-  // If the category is not found, it defaults to popular. Now it will find "oscars"!
+  // If the category is not found, it defaults to popular.
   const currentCategory = categoryConfig[category] || categoryConfig.popular;
 
   useEffect(() => {
@@ -30,17 +30,14 @@ const ViewAll = () => {
       setLoading(true);
       try {
         const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-        const PROXY_URL = "https://corsproxy.io/?";
-        const BASE_URL = "https://api.themoviedb.org/3";
+        const BASE_URL = "/api/tmdb"; 
         
+        // Clean target URL creation
         const targetUrl = `${BASE_URL}${currentCategory.endpoint}?api_key=${apiKey}&page=${page}`;
-        const response = await fetch(PROXY_URL + encodeURIComponent(targetUrl));
+        const response = await fetch(targetUrl);
         const data = await response.json();
         
-        // 🚨 FIX 2: Standard endpoints use 'data.results', but Lists (like Oscars) use 'data.items'
         setMovies(data.results || data.items || []);
-        
-        // TMDB limits pagination to 500 pages max
         setTotalPages(data.total_pages > 500 ? 500 : (data.total_pages || 1)); 
       } catch (error) {
         console.error("Error fetching paginated data:", error);

@@ -16,10 +16,12 @@ const SearchPage = () => {
       setLoading(true);
       try {
         const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-        const PROXY_URL = "https://corsproxy.io/?";
-        const targetUrl = `https://api.themoviedb.org/3/search/multi?api_key=${apiKey}&query=${query}&page=1`;
+        const BASE_URL = "/api/tmdb";
+        
+        // 🚨 FIX: Removed the absolute TMDB URL. Now it perfectly creates "/api/tmdb/search/multi..."
+        const targetUrl = `${BASE_URL}/search/multi?api_key=${apiKey}&query=${query}&page=1`;
 
-        const response = await fetch(PROXY_URL + encodeURIComponent(targetUrl));
+        const response = await fetch(targetUrl);
         const data = await response.json();
 
         // Filter out actors/people so we only show movies and TV shows
