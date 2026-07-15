@@ -56,7 +56,7 @@ const HomePage = () => {
         setPopular(popularData.slice(0, 4)); 
         setUpcoming(upcomingData.slice(4, 8)); 
         setTopRated(topRatedData.slice(0, 5));
-        setOscarMovies(oscarData.items?.slice(0, 5) || []); 
+        setOscarMovies(oscarData.items?.slice(0, 10) || []); 
 
       } catch (error) {
         console.error("Failed to fetch home page data:", error);
@@ -96,7 +96,7 @@ const HomePage = () => {
   return (
     <div className="bg-[#0b0b13] min-h-screen text-slate-200 font-sans p-4 md:p-8">
       {/* --- HERO SECTION --- */}
-      <div className="relative w-full h-[500px] md:h-[600px] rounded-3xl overflow-hidden shadow-2xl border border-slate-800 mb-10 bg-black max-w-[1600px] mx-auto">
+      <div className="relative w-full h-125 md:h-150 rounded-3xl overflow-hidden shadow-2xl border border-slate-800 mb-10 bg-black max-w-[1600px] mx-auto">
         <div className="absolute inset-0 w-full h-full pointer-events-none">
           {heroTrailer ? (
             <iframe
@@ -114,8 +114,8 @@ const HomePage = () => {
           )}
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0b13] via-[#0b0b13]/80 to-transparent pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b13] via-transparent to-transparent pointer-events-none"></div>
+        <div className="absolute inset-0 bg-linear-to-r from-[#0b0b13] via-[#0b0b13]/50 to-transparent pointer-events-none"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-[#0b0b13] via-transparent to-transparent pointer-events-none"></div>
 
         <div className="relative z-10 flex flex-col justify-center h-full max-w-2xl px-8 md:px-16 pointer-events-auto">
           <p className="text-purple-500 font-bold tracking-widest text-sm mb-2 uppercase">
