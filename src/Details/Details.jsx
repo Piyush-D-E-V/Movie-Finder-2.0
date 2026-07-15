@@ -12,8 +12,16 @@ const Details = () => {
 
   const { addToWatchlist, removeFromWatchlist, isAdded } = useWatchlist();
 
-  // 🚨 NEW: Reference for the cast scrollable container
+  // 🚨 NEW: Ref for controlling the cast scroll container
   const castContainerRef = useRef(null);
+
+  // 🚨 NEW: Function to scroll left and right
+  const scrollCast = (direction) => {
+    if (castContainerRef.current) {
+      const scrollAmount = direction === "left" ? -400 : 400; // Kitna scroll karna hai ek click par
+      castContainerRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
@@ -25,7 +33,7 @@ const Details = () => {
       try {
         const apiKey = import.meta.env.VITE_TMDB_API_KEY;
         
-        // SMART URL: Localhost pe direct TMDB, Vercel pe Proxy rewrite
+        // 🚨 SMART URL: Localhost aur Vercel dono ke liye perfect
         const BASE_URL = import.meta.env.DEV 
           ? "https://api.themoviedb.org/3" 
           : "/api/tmdb";
@@ -52,17 +60,6 @@ const Details = () => {
     if (id) fetchDetails();
   }, [mediaType, id]);
 
-  // 🚨 NEW: Scroll handlers for Cast Section Buttons
-  const scrollCast = (direction) => {
-    if (castContainerRef.current) {
-      const scrollAmount = 300; // Ek baar mein kitna scroll hona chahiye
-      castContainerRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth",
-      });
-    }
-  };
-
   if (loading) return <div className="flex justify-center items-center min-h-screen bg-[#0b0b13] text-purple-500 font-bold text-2xl animate-pulse">Loading Details...</div>;
   if (hasError || !data) return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-[#0b0b13] text-white gap-4">
@@ -75,6 +72,7 @@ const Details = () => {
   const releaseYear = data.release_date?.slice(0, 4) || data.first_air_date?.slice(0, 4) || "N/A";
   const isMovieAdded = isAdded(data.id);
 
+  // OTT PROVIDERS LOGIC
   const watchData = data["watch/providers"]?.results;
   const regionData = watchData?.IN || watchData?.US; 
 
@@ -104,7 +102,7 @@ const Details = () => {
           alt="Backdrop" 
           className="w-full h-full object-cover opacity-30" 
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b13] via-[#0b0b13]/60 to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-[#0b0b13] via-[#0b0b13]/60 to-transparent"></div>
       </div>
 
       {/* --- MAIN CONTENT --- */}
@@ -201,37 +199,28 @@ const Details = () => {
 
       <hr className="border-slate-800/60 my-16 max-w-7xl mx-auto" />
 
-      {/* --- 🚨 UPGRADED CAST SECTION WITH SCROLL BUTTONS --- */}
+      {/* --- CAST SECTION (WITH SMART SCROLL & HIDDEN SCROLLBAR) --- */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative group">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white border-l-4 border-purple-500 pl-3">Top Cast</h2>
-          
-          {/* Action Buttons for Left/Right Scroll */}
-          {data.credits?.cast?.length > 0 && (
-            <div className="flex gap-2">
-              <button 
-                onClick={() => scrollCast("left")} 
-                className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-lg text-slate-300 hover:bg-purple-600 hover:border-purple-500 hover:text-white transition-all shadow-md active:scale-95"
-              >
-                ‹
-              </button>
-              <button 
-                onClick={() => scrollCast("right")} 
-                className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-lg text-slate-300 hover:bg-purple-600 hover:border-purple-500 hover:text-white transition-all shadow-md active:scale-95"
-              >
-                ›
-              </button>
-            </div>
-          )}
-        </div>
+        <h2 className="text-2xl font-bold text-white mb-6 border-l-4 border-purple-500 pl-3">Top Cast</h2>
+        
+        {/* Left Scroll Button (Hidden on Mobile) */}
+        {data.credits?.cast?.length > 0 && (
+          <button 
+            onClick={() => scrollCast("left")}
+            className="absolute left-0 top-[55%] z-20 w-12 h-12 bg-black/80 hover:bg-purple-600 text-white rounded-full flex items-center justify-center font-bold border border-slate-600 backdrop-blur-md transition-all opacity-0 group-hover:opacity-100 hidden md:flex shadow-xl shadow-black -translate-x-4"
+          >
+            ←
+          </button>
+        )}
 
-        {/* Scrollable Cast list with forwardRef */}
+        {/* Scrollable Container */}
         <div 
           ref={castContainerRef}
-          className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide scroll-smooth"
+          // 🚨 FIX: Classes added to strictly hide the scrollbar across all browsers while keeping it scrollable
+          className="flex gap-4 overflow-x-auto pb-4 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']"
         >
           {data.credits?.cast?.slice(0, 15).map(actor => (
-            <div key={actor.id} className="w-28 md:w-32 shrink-0">
+            <div key={actor.id} className="w-28 md:w-32 shrink-0 snap-start">
               <img 
                 src={actor.profile_path ? `https://image.tmdb.org/t/p/w200${actor.profile_path}` : "https://via.placeholder.com/200?text=No+Image"}
                 alt={actor.name}
@@ -245,6 +234,16 @@ const Details = () => {
             <p className="text-slate-500">No cast info available.</p>
           )}
         </div>
+
+        {/* Right Scroll Button (Hidden on Mobile) */}
+        {data.credits?.cast?.length > 0 && (
+          <button 
+            onClick={() => scrollCast("right")}
+            className="absolute right-0 top-[55%] z-20 w-12 h-12 bg-black/80 hover:bg-purple-600 text-white rounded-full flex items-center justify-center font-bold border border-slate-600 backdrop-blur-md transition-all opacity-0 group-hover:opacity-100 hidden md:flex shadow-xl shadow-black translate-x-4"
+          >
+            →
+          </button>
+        )}
       </div>
 
       <hr className="border-slate-800/60 my-16 max-w-7xl mx-auto" />
