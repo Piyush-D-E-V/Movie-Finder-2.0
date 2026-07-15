@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useWatchlist } from "../context/WatchlistContext"; // ⚠️ IMPORTANT: Check this path!
 
@@ -12,6 +12,9 @@ const Details = () => {
 
   const { addToWatchlist, removeFromWatchlist, isAdded } = useWatchlist();
 
+  // 🚨 NEW: Reference for the cast scrollable container
+  const castContainerRef = useRef(null);
+
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
 
@@ -21,9 +24,12 @@ const Details = () => {
       
       try {
         const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-        const BASE_URL = "/api/tmdb";
         
-        // 🚨 FIX: Corrected URL formation to avoid double "/api/tmdb"
+        // SMART URL: Localhost pe direct TMDB, Vercel pe Proxy rewrite
+        const BASE_URL = import.meta.env.DEV 
+          ? "https://api.themoviedb.org/3" 
+          : "/api/tmdb";
+        
         const targetUrl = `${BASE_URL}/${mediaType}/${id}?api_key=${apiKey}&append_to_response=videos,credits,watch/providers`;
         const response = await fetch(targetUrl);
         
@@ -46,6 +52,17 @@ const Details = () => {
     if (id) fetchDetails();
   }, [mediaType, id]);
 
+  // 🚨 NEW: Scroll handlers for Cast Section Buttons
+  const scrollCast = (direction) => {
+    if (castContainerRef.current) {
+      const scrollAmount = 300; // Ek baar mein kitna scroll hona chahiye
+      castContainerRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
   if (loading) return <div className="flex justify-center items-center min-h-screen bg-[#0b0b13] text-purple-500 font-bold text-2xl animate-pulse">Loading Details...</div>;
   if (hasError || !data) return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-[#0b0b13] text-white gap-4">
@@ -58,11 +75,9 @@ const Details = () => {
   const releaseYear = data.release_date?.slice(0, 4) || data.first_air_date?.slice(0, 4) || "N/A";
   const isMovieAdded = isAdded(data.id);
 
-  // UPGRADED OTT PROVIDERS LOGIC
   const watchData = data["watch/providers"]?.results;
   const regionData = watchData?.IN || watchData?.US; 
 
-  // Combine ALL types of streaming
   const allPlatforms = [
     ...(regionData?.flatrate || []),
     ...(regionData?.free || []),
@@ -71,7 +86,6 @@ const Details = () => {
     ...(regionData?.buy || [])
   ];
 
-  // Remove duplicates
   const streamingPlatforms = Array.from(new Map(allPlatforms.map(p => [p.provider_id, p])).values());
 
   return (
@@ -105,7 +119,7 @@ const Details = () => {
               className="w-full rounded-2xl shadow-[0_0_30px_rgba(0,0,0,0.6)] border border-slate-700"
             />
             
-            {/* NEW OTT PLATFORM SECTION WITH SMART LINKS */}
+            {/* OTT PLATFORM SECTION */}
             {streamingPlatforms.length > 0 && (
               <div className="bg-[#12121a] border border-slate-800 rounded-2xl p-4 shadow-lg">
                 <p className="text-slate-400 text-sm font-bold mb-3 uppercase tracking-wider">Available to Watch</p>
@@ -187,11 +201,36 @@ const Details = () => {
 
       <hr className="border-slate-800/60 my-16 max-w-7xl mx-auto" />
 
-      {/* --- CAST SECTION --- */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-bold text-white mb-6 border-l-4 border-purple-500 pl-3">Top Cast</h2>
-        <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
-          {data.credits?.cast?.slice(0, 10).map(actor => (
+      {/* --- 🚨 UPGRADED CAST SECTION WITH SCROLL BUTTONS --- */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative group">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-white border-l-4 border-purple-500 pl-3">Top Cast</h2>
+          
+          {/* Action Buttons for Left/Right Scroll */}
+          {data.credits?.cast?.length > 0 && (
+            <div className="flex gap-2">
+              <button 
+                onClick={() => scrollCast("left")} 
+                className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-lg text-slate-300 hover:bg-purple-600 hover:border-purple-500 hover:text-white transition-all shadow-md active:scale-95"
+              >
+                ‹
+              </button>
+              <button 
+                onClick={() => scrollCast("right")} 
+                className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-lg text-slate-300 hover:bg-purple-600 hover:border-purple-500 hover:text-white transition-all shadow-md active:scale-95"
+              >
+                ›
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Scrollable Cast list with forwardRef */}
+        <div 
+          ref={castContainerRef}
+          className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide scroll-smooth"
+        >
+          {data.credits?.cast?.slice(0, 15).map(actor => (
             <div key={actor.id} className="w-28 md:w-32 shrink-0">
               <img 
                 src={actor.profile_path ? `https://image.tmdb.org/t/p/w200${actor.profile_path}` : "https://via.placeholder.com/200?text=No+Image"}
